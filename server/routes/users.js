@@ -89,6 +89,14 @@ router.get('/:identifier', (req, res) => {
   })
 });
 
+router.get('/', (req, res) => {
+  User.fetchAll().then(users => {
+    var waitTill = new Date(new Date().getTime() + 2 * 1000);
+    while (waitTill > new Date()) {}
+    res.json({ list: users });
+  })
+});
+
 router.post('/', (req, res) => {
   validateInput(req.body, commonValidateInput).then(({ errors, isValid }) => {
     if (isValid) {
