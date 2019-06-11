@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 // import Promise from 'bluebird';
 
 import User from '../models/user';
+import authenticate from '../middlewares/authenticate';
 
 let router = express.Router();
 
@@ -89,11 +90,21 @@ router.get('/:identifier', (req, res) => {
   })
 });
 
-router.get('/', (req, res) => {
-  User.fetchAll().then(users => {
-    var waitTill = new Date(new Date().getTime() + 2 * 1000);
-    while (waitTill > new Date()) {}
-    res.json({ list: users });
+router.get('/', authenticate, (req, res) => {
+  const pageSize = req.query.pageSize || 1;
+  const page = req.query.page || 1;
+
+  User.count().then(count => {
+    // var waitTill = new Date(new Date().getTime() + 1 * 1000);
+    // while (waitTill > new Date()) {}
+
+    User.query(qb => {
+      qb.limit(pageSize);
+      qb.offset(pageSize * (page - 1));
+    }).fetchAll().then(users => {
+      res.json({ list: users, pagination: { total_count: parseInt(count), current_page: parseInt(page), pageSize: parseInt(pageSize) } });
+    })
+
   })
 });
 
